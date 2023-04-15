@@ -1,0 +1,73 @@
+
+.login-modal{
+  width: 300px;
+  background: var(--white);
+  padding: 20px 30px 40px;
+  border-radius: 15px;
+}
+
+.login-header{
+  padding: 0 10px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-item{
+  display: flex;
+  padding: 10px 35px 0 30px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form-input{
+  max-width: 180px !important;
+}
+
+// 按钮组
+.form-action{
+  padding: 20px 20px 0;
+  display: flex;
+  justify-content: space-around;
+}
+.form-submit {
+  background: var(--primary);
+  color: white;
+}
+.form-cancel {
+}
+
+@media only screen and (max-width: 600px) {
+
+  .login-modal{
+    width: 240px;
+    padding: 10px 20px 20px;
+    border-radius: 15px;
+  }
+
+  .login-header{
+    padding: 0;
+  }
+
+  .form-action{
+    padding: 20px 10px 0;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .form-item{
+    padding: 10px 0 0;
+  }
+
+  .form-input{
+    max-width: 240px !important;
+    width: 100%;
+    height: 42px;
+  }
+
+  .form-label{
+    display: none;
+  }
+}

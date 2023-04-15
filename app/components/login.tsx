@@ -1,0 +1,119 @@
+import React, { useState } from "react";
+import style from "./login.module.scss";
+import HomeStyle from "./home.module.scss";
+
+import SendWhiteIcon from "../icons/send-white.svg";
+import ReturnIcon from "../icons/return.svg";
+import ChatGptIcon from "../icons/chatgpt.svg";
+
+import { IconButton } from "./button";
+import { isMobileScreen } from "../utils";
+
+interface FormValues {
+  email: string;
+  password: string;
+}
+
+interface ILoginProps {
+  setShowModal: (_: boolean) => void;
+}
+
+// 定义组件
+const Login: React.FC<ILoginProps> = (props) => {
+  // 定义表单数据的初始值
+  const initialValues: FormValues = { email: "", password: "" };
+  // 使用useState来存储表单数据
+  const [formValues, setFormValues] = useState<FormValues>(initialValues);
+
+  // 处理表单提交事件
+  const handleSubmit = () => {
+    // 在这里编写表单提交的相关逻辑
+  };
+
+  // 处理表单数据变化事件
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setFormValues({ ...formValues, [name]: value });
+  };
+
+  const renderInputs = () => {
+    const formItems = [
+      {
+        label: "邮箱",
+        id: "email",
+        name: "email",
+        placeholder: isMobileScreen() ? "邮箱" : "",
+        value: formValues.email,
+      },
+      {
+        label: "密码",
+        id: "password",
+        name: "password",
+        placeholder: isMobileScreen() ? "密码" : "",
+        value: formValues.password,
+      },
+    ];
+
+    return formItems.map((item) => (
+      <div className={style["form-item"]} key={item.id}>
+        <label htmlFor={item.id} className={style["form-label"]}>
+          {item.label}
+        </label>
+        <input
+          type={item.id === "password" ? "password" : "text"}
+          id={item.id}
+          name={item.name}
+          placeholder={item.placeholder}
+          value={item.value}
+          onChange={handleInputChange}
+          className={style["form-input"]}
+        />
+      </div>
+    ));
+  };
+
+  return (
+    <div className="modal-mask">
+      <div className={style["login-modal"]}>
+        {/*logo*/}
+        <div className={style["login-header"]}>
+          <div className={HomeStyle["sidebar-header"]}>
+            <div className={HomeStyle["sidebar-title"]}>ChatGPT Next</div>
+            <div className={HomeStyle["sidebar-sub-title"]}>
+              Build your own AI assistant.
+            </div>
+            <div className={HomeStyle["sidebar-logo"]}>
+              <ChatGptIcon />
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className={style["login-form"]}>
+          {renderInputs()}
+          <div className={style["form-action"]}>
+            <IconButton
+              icon={<SendWhiteIcon />}
+              text="登录"
+              bordered
+              noDark
+              onClick={handleSubmit}
+              className={style["form-submit"]}
+            />
+            <IconButton
+              icon={<ReturnIcon />}
+              text="取消"
+              bordered
+              noDark
+              onClick={() => {
+                props.setShowModal(false);
+              }}
+              className={style["form-cancel"]}
+            />
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default Login;

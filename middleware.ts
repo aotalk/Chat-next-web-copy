@@ -51,6 +51,7 @@ export function middleware(req: NextRequest) {
     console.log("[Auth] set user token");
   }
 
+  console.log('[middleware] access')
   return NextResponse.next({
     request: {
       headers: req.headers,

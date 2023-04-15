@@ -1,4 +1,4 @@
-import { SubmitKey } from "../store/app";
+import { SubmitKey } from "@/app/store";
 
 const cn = {
   WIP: "该功能仍在开发中……",
@@ -14,6 +14,7 @@ const cn = {
       ChatList: "查看消息列表",
       CompressedHistory: "查看压缩后的历史 Prompt",
       Export: "导出聊天记录",
+      Login: "登录",
       Copy: "复制",
       Stop: "停止",
       Retry: "重试",

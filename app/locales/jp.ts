@@ -16,6 +16,7 @@ const jp = {
       CompressedHistory: "圧縮された履歴プロンプトを表示",
       Export: "チャット履歴をエクスポート",
       Copy: "コピー",
+      Login: "",
       Stop: "停止",
       Retry: "リトライ",
     },
