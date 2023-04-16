@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// export const AOTALK_BASE_URL = "https://aotalk.taouniverse.top";
-export const AOTALK_BASE_URL = "/proxy";
+export const AOTALK_BASE_URL = "https://aotalk.taouniverse.top";
+// export const AOTALK_BASE_URL = "/proxy";
 
 export const API = {
   code: "/api/code",
