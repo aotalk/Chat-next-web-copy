@@ -5,7 +5,6 @@ import SendWhiteIcon from "../icons/send-white.svg";
 import BrainIcon from "../icons/brain.svg";
 import RenameIcon from "../icons/rename.svg";
 import ExportIcon from "../icons/share.svg";
-import EditIcon from "../icons/edit.svg";
 import ReturnIcon from "../icons/return.svg";
 import CopyIcon from "../icons/copy.svg";
 import DownloadIcon from "../icons/download.svg";
@@ -51,8 +50,6 @@ import Locale from "../locales";
 import { IconButton } from "./button";
 import styles from "./home.module.scss";
 import chatStyle from "./chat.module.scss";
-
-import Login from "./login";
 
 import { Input, Modal, showModal } from "./ui-lib";
 
@@ -592,7 +589,6 @@ export function Chat(props: {
     );
 
   const [showPromptModal, setShowPromptModal] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const renameSession = () => {
     const newTopic = prompt(Locale.Chat.Rename, session.topic);
@@ -664,19 +660,7 @@ export function Chat(props: {
               />
             </div>
           )}
-          <div className={styles["window-action-button"]}>
-            <IconButton
-              icon={<EditIcon />}
-              bordered
-              title={Locale.Chat.Actions.Login}
-              onClick={() => {
-                setShowLoginModal(true);
-              }}
-            />
-          </div>
         </div>
-
-        {showLoginModal && <Login setShowModal={setShowLoginModal} />}
 
         <PromptToast
           showToast={!hitBottom}

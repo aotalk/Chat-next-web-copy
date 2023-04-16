@@ -2,13 +2,14 @@
 
 require("../polyfill");
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, createContext } from "react";
 
 import { IconButton } from "./button";
 import styles from "./home.module.scss";
 
 import SettingsIcon from "../icons/settings.svg";
-import GithubIcon from "../icons/github.svg";
+// import GithubIcon from "../icons/github.svg";
+import LoginIcon from "../icons/login.svg";
 import ChatGptIcon from "../icons/chatgpt.svg";
 
 import BotIcon from "../icons/bot.svg";
@@ -20,10 +21,14 @@ import { useChatStore } from "../store";
 import { getCSSVar, isMobileScreen } from "../utils";
 import Locale from "../locales";
 import { Chat } from "./chat";
+import Login, { login } from "./login";
+import Register from "./register";
 
 import dynamic from "next/dynamic";
 import { REPO_URL } from "../constant";
 import { ErrorBoundary } from "./error";
+import { pick } from "next/dist/lib/pick";
+import { toast, ToastContainer } from "react-toastify";
 
 export function Loading(props: { noLogo?: boolean }) {
   return (
@@ -130,6 +135,15 @@ const useHasHydrated = () => {
   return hasHydrated;
 };
 
+export interface IUserInfo {
+  email: string;
+  nickname: string;
+  session_id: string;
+  password: string;
+}
+
+export const AuthContext = createContext<IUserInfo | null>(null);
+
 function _Home() {
   const [createNewSession, currentIndex, removeSession] = useChatStore(
     (state) => [
@@ -141,7 +155,9 @@ function _Home() {
   const chatStore = useChatStore();
   const loading = !useHasHydrated();
   const [showSideBar, setShowSideBar] = useState(true);
-
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [loginInfo, setLoginInfo] = useState<IUserInfo | null>(null);
   // setting
   const [openSettings, setOpenSettings] = useState(false);
   const config = useChatStore((state) => state.config);
@@ -151,101 +167,152 @@ function _Home() {
 
   useSwitchTheme();
 
+  useEffect(() => {
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+    login(userInfo).then((userInfo) => setLoginInfo(userInfo));
+  }, []);
+
   if (loading) {
     return <Loading />;
   }
 
   return (
-    <div
-      className={`${
-        config.tightBorder && !isMobileScreen()
-          ? styles["tight-container"]
-          : styles.container
-      }`}
-    >
+    <AuthContext.Provider value={loginInfo}>
       <div
-        className={styles.sidebar + ` ${showSideBar && styles["sidebar-show"]}`}
+        className={`${
+          config.tightBorder && !isMobileScreen()
+            ? styles["tight-container"]
+            : styles.container
+        }`}
       >
-        <div className={styles["sidebar-header"]}>
-          <div className={styles["sidebar-title"]}>ChatGPT Next</div>
-          <div className={styles["sidebar-sub-title"]}>
-            Build your own AI assistant.
-          </div>
-          <div className={styles["sidebar-logo"]}>
-            <ChatGptIcon />
-          </div>
-        </div>
-
         <div
-          className={styles["sidebar-body"]}
-          onClick={() => {
-            setOpenSettings(false);
-            setShowSideBar(false);
-          }}
+          className={
+            styles.sidebar + ` ${showSideBar && styles["sidebar-show"]}`
+          }
         >
-          <ChatList />
-        </div>
-
-        <div className={styles["sidebar-tail"]}>
-          <div className={styles["sidebar-actions"]}>
-            <div className={styles["sidebar-action"] + " " + styles.mobile}>
-              <IconButton
-                icon={<CloseIcon />}
-                onClick={chatStore.deleteSession}
-              />
+          <div className={styles["sidebar-header"]}>
+            <div className={styles["sidebar-title"]}>ChatGPT Next</div>
+            <div className={styles["sidebar-sub-title"]}>
+              Build your own AI assistant.
             </div>
-            <div className={styles["sidebar-action"]}>
+            <div className={styles["sidebar-logo"]}>
+              <ChatGptIcon />
+            </div>
+          </div>
+
+          <div
+            className={styles["sidebar-body"]}
+            onClick={() => {
+              setOpenSettings(false);
+              setShowSideBar(false);
+            }}
+          >
+            <ChatList />
+          </div>
+
+          <div className={styles["sidebar-tail"]}>
+            <div className={styles["sidebar-actions"]}>
+              <div className={styles["sidebar-action"] + " " + styles.mobile}>
+                <IconButton
+                  icon={<CloseIcon />}
+                  onClick={chatStore.deleteSession}
+                />
+              </div>
+              <div className={styles["sidebar-action"]}>
+                <IconButton
+                  icon={<SettingsIcon />}
+                  onClick={() => {
+                    setOpenSettings(true);
+                    setShowSideBar(false);
+                  }}
+                  shadow
+                />
+              </div>
+
+              <div className={styles["window-action-button"]}>
+                <IconButton
+                  icon={<LoginIcon />}
+                  bordered
+                  text={loginInfo?.nickname || Locale.Chat.Actions.Login}
+                  title={Locale.Chat.Actions.Login}
+                  onClick={() => {
+                    setShowLoginModal(true);
+                  }}
+                />
+              </div>
+
+              {showLoginModal && (
+                <Login
+                  setShowModal={setShowLoginModal}
+                  onLogin={(user: IUserInfo | null) => {
+                    setLoginInfo(user);
+                    localStorage.setItem("userInfo", JSON.stringify(user));
+                  }}
+                  onSwitch={() => {
+                    setShowLoginModal(false);
+                    setShowRegisterModal(true);
+                  }}
+                />
+              )}
+              {showRegisterModal && (
+                <Register
+                  setShowModal={setShowRegisterModal}
+                  onRegister={(user: IUserInfo) => {
+                    setLoginInfo(user);
+                    localStorage.setItem("userInfo", JSON.stringify(user));
+                  }}
+                  onSwitch={() => {
+                    setShowLoginModal(true);
+                    setShowRegisterModal(false);
+                  }}
+                />
+              )}
+
+              {/* git地址 */}
+              {/*<div className={styles["sidebar-action"]}>*/}
+              {/*  <a href={REPO_URL} target="_blank">*/}
+              {/*    <IconButton icon={<GithubIcon />} shadow />*/}
+              {/*  </a>*/}
+              {/*</div>*/}
+            </div>
+            <div>
               <IconButton
-                icon={<SettingsIcon />}
+                icon={<AddIcon />}
+                text={Locale.Home.NewChat}
                 onClick={() => {
-                  setOpenSettings(true);
+                  createNewSession();
                   setShowSideBar(false);
                 }}
                 shadow
               />
             </div>
-            <div className={styles["sidebar-action"]}>
-              <a href={REPO_URL} target="_blank">
-                <IconButton icon={<GithubIcon />} shadow />
-              </a>
-            </div>
           </div>
-          <div>
-            <IconButton
-              icon={<AddIcon />}
-              text={Locale.Home.NewChat}
-              onClick={() => {
-                createNewSession();
-                setShowSideBar(false);
-              }}
-              shadow
-            />
-          </div>
+
+          <div
+            className={styles["sidebar-drag"]}
+            onMouseDown={(e) => onDragMouseDown(e as any)}
+          ></div>
         </div>
 
-        <div
-          className={styles["sidebar-drag"]}
-          onMouseDown={(e) => onDragMouseDown(e as any)}
-        ></div>
+        <div className={styles["window-content"]}>
+          {openSettings ? (
+            <Settings
+              closeSettings={() => {
+                setOpenSettings(false);
+                setShowSideBar(true);
+              }}
+            />
+          ) : (
+            <Chat
+              key="chat"
+              showSideBar={() => setShowSideBar(true)}
+              sideBarShowing={showSideBar}
+            />
+          )}
+        </div>
       </div>
-
-      <div className={styles["window-content"]}>
-        {openSettings ? (
-          <Settings
-            closeSettings={() => {
-              setOpenSettings(false);
-              setShowSideBar(true);
-            }}
-          />
-        ) : (
-          <Chat
-            key="chat"
-            showSideBar={() => setShowSideBar(true)}
-            sideBarShowing={showSideBar}
-          />
-        )}
-      </div>
-    </div>
+      <ToastContainer />
+    </AuthContext.Provider>
   );
 }
 

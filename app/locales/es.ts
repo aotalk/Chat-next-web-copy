@@ -17,6 +17,7 @@ const es: LocaleType = {
       CompressedHistory: "Historial de memoria comprimido",
       Export: "Exportar todos los mensajes como Markdown",
       Copy: "Copiar",
+      Login: "login",
       Stop: "Detener",
       Retry: "Reintentar",
     },

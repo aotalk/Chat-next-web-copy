@@ -1,13 +1,19 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import style from "./login.module.scss";
 import HomeStyle from "./home.module.scss";
 
 import SendWhiteIcon from "../icons/send-white.svg";
 import ReturnIcon from "../icons/return.svg";
 import ChatGptIcon from "../icons/chatgpt.svg";
+import DeleteIcon from "../icons/delete.svg";
 
 import { IconButton } from "./button";
 import { isMobileScreen } from "../utils";
+import { AOPost, API } from "@/app/api/aotalk/route";
+import { AuthContext, IUserInfo } from "./home";
+import { pick } from "next/dist/lib/pick";
 
 interface FormValues {
   email: string;
@@ -16,6 +22,27 @@ interface FormValues {
 
 interface ILoginProps {
   setShowModal: (_: boolean) => void;
+  onSwitch: () => void;
+  onLogin: (user: IUserInfo | null) => void;
+}
+
+export function login(postValues: any) {
+  return new Promise<IUserInfo>((resolve, reject) => {
+    AOPost(API.account.login, {
+      ...postValues,
+    })
+      .then((res: any) => {
+        const data = res.data;
+        resolve({
+          ...pick(data, ["email", "nickname", "session_id"]),
+          password: postValues.password,
+        });
+      })
+      .catch((res) => {
+        const error = res.response;
+        reject(error);
+      });
+  });
 }
 
 // 定义组件
@@ -24,10 +51,60 @@ const Login: React.FC<ILoginProps> = (props) => {
   const initialValues: FormValues = { email: "", password: "" };
   // 使用useState来存储表单数据
   const [formValues, setFormValues] = useState<FormValues>(initialValues);
+  const loginInfo = useContext(AuthContext);
 
+  if (loginInfo) {
+    return (
+      <div className="modal-mask">
+        <div className={style["logout"]}>
+          <div className={style["logout-desc"]}>是否退出登录?</div>
+          <div className={style["logout-btn"]}>
+            <IconButton
+              icon={<DeleteIcon />}
+              text="确认"
+              bordered
+              noDark
+              onClick={() => {
+                toast("退出成功", { autoClose: 2000 });
+                props.onLogin(null);
+                props.setShowModal(false);
+              }}
+              className={style["form-cancel"]}
+            />
+            <IconButton
+              icon={<ReturnIcon />}
+              text="取消"
+              bordered
+              noDark
+              onClick={() => {
+                props.setShowModal(false);
+              }}
+              className={style["form-cancel"]}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
   // 处理表单提交事件
   const handleSubmit = () => {
-    // 在这里编写表单提交的相关逻辑
+    login(formValues)
+      .then((userInfo) => {
+        if (userInfo) {
+          toast("登录成功，欢迎" + userInfo.nickname || "", {
+            autoClose: 2000,
+          });
+          props.onLogin(userInfo);
+          props.setShowModal(false);
+        }
+      })
+      .catch((error) => {
+        if (error.status === 400) {
+          toast("请输入正确的邮箱或密码", { type: "warning", autoClose: 3000 });
+        } else {
+          toast("服务器未连接或未知错误", { type: "error", autoClose: 3000 });
+        }
+      });
   };
 
   // 处理表单数据变化事件
@@ -88,30 +165,40 @@ const Login: React.FC<ILoginProps> = (props) => {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className={style["login-form"]}>
-          {renderInputs()}
-          <div className={style["form-action"]}>
-            <IconButton
-              icon={<SendWhiteIcon />}
-              text="登录"
-              bordered
-              noDark
-              onClick={handleSubmit}
-              className={style["form-submit"]}
-            />
-            <IconButton
-              icon={<ReturnIcon />}
-              text="取消"
-              bordered
-              noDark
-              onClick={() => {
-                props.setShowModal(false);
-              }}
-              className={style["form-cancel"]}
-            />
-          </div>
-        </form>
+        {renderInputs()}
+
+        <div className={style["register"]}>
+          没有账号?{" "}
+          <span
+            onClick={() => props.onSwitch()}
+            className={style["register-link"]}
+          >
+            点击注册
+          </span>
+        </div>
+
+        <div className={style["form-action"]}>
+          <IconButton
+            icon={<SendWhiteIcon />}
+            text="登录"
+            bordered
+            noDark
+            onClick={handleSubmit}
+            className={style["form-submit"]}
+          />
+          <IconButton
+            icon={<ReturnIcon />}
+            text="取消"
+            bordered
+            noDark
+            onClick={() => {
+              props.setShowModal(false);
+            }}
+            className={style["form-cancel"]}
+          />
+        </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };
